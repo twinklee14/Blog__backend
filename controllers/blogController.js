@@ -11,6 +11,7 @@ const createBlog = async (req, res) => {
         const blog = new Blog({
             title,
             content,
+            image: req.file ? req.file.filename : "",
             author: req.user.id
         });
         await blog.save();

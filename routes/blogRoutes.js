@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const protect = require("../middleware/auth");
+const upload = require("../middleware/upload");
 const {createBlog,getAllBlogs,getBlogById,updateBlog,deleteBlog} = require("../controllers/blogController");
-router.post("/", protect, createBlog);
+router.post("/", protect,upload.single("image"), createBlog);
 router.get("/", getAllBlogs);
 router.get("/:id",getBlogById);
 router.put("/:id",protect,updateBlog);
