@@ -8,10 +8,11 @@ const createBlog = async (req, res) => {
             });
 
         }
+        const imageNames = req.files? req.files.map(file => file.filename): [];
         const blog = new Blog({
             title,
             content,
-            image: req.file ? req.file.filename : "",
+            images: imageNames,
             author: req.user.id
         });
         await blog.save();

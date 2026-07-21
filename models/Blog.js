@@ -13,11 +13,11 @@ const blogSchema = new mongoose.Schema(
         trim: true
     },
 
-    image: {
-        type: String,
-        default: ""
-    },
-
+    images: [
+    { 
+        type: String 
+    }
+],
     author: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
