@@ -29,13 +29,34 @@ const createBlog = async (req, res) => {
         });
     } 
 };
+//anything after '?' in request is treated as a query
+//regex is a MongoDB query operator (a special keyword, $ at the start)
+// regex is cases sensitive so we use options :"i" to make it case insensitive
 const getAllBlogs = async (req, res) => {
-    try {
-        const blogs = await Blog.find()
+        try {
+        const { search } = req.query;
+        let filter = {};
+        if (search) {
+            filter = {
+                $or: [{title: {
+                        $regex: search,
+                        $options: "i"
+                        }
+                    },
+                    {
+                    content: {
+                        $regex: search,
+                        $options: "i"
+                        }
+                    }
+                ]
+            };
+        }
+        const blogs = await Blog.find(filter)
             .populate("author", "name email")
             .sort({ createdAt: -1 });
-        res.status(200).json({
-            count: blogs.length,
+            res.status(200).json({
+            total: blogs.length,
             blogs
         });
     } catch (error) {
