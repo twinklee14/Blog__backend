@@ -37,15 +37,9 @@ const getAllBlogs = async (req, res) => {
         try {
         const { search,
                 page=1, //default
-                limit=5 //default
+                limit=5, //default
+                sort = "latest" //default
          } = req.query;
-
-        //since queries are strings, need to convert them to int
-        const pageNumber = parseInt(page);
-        const limitNumber = parseInt(limit);
-
-        //tells us the number of bolgs to skip from the beginning
-        const skip = (pageNumber - 1) * limitNumber;
 
         let filter = {};
         if (search) {
@@ -64,11 +58,35 @@ const getAllBlogs = async (req, res) => {
                 ]
             };
         }
+        //since queries are strings, need to convert them to int
+        const pageNumber = Math.max(parseInt(page) || 1, 1); // to prevent invalid inputs (page =-10 becomes page=1)
+        const limitNumber = Math.max(parseInt(limit) || 5, 1); //to prevent invalid inputs (limit= 0 becomes limit=1)
+
+        //tells us the number of bolgs to skip from the beginning
+        const skip = (pageNumber - 1) * limitNumber;
+
+        let sortOption = {};
+        switch (sort) {
+            case "latest":
+                sortOption = { createdAt: -1 };
+                break;
+            case "oldest":
+                sortOption = { createdAt: 1 };
+                break;
+            case "title_asc":
+                sortOption = { title: 1 };
+                break;
+            case "title_desc":
+                sortOption = { title: -1 };
+                break;
+            default:
+                sortOption = { createdAt: -1 };
+}
         const totalBlogs= await Blog.countDocuments(filter);
 
         const blogs = await Blog.find(filter)
             .populate("author", "name email")
-            .sort({ createdAt: -1 })
+            .sort(sortOption)
             .skip(skip)
             .limit(limitNumber);
 
@@ -79,6 +97,7 @@ const getAllBlogs = async (req, res) => {
             totalPages,
             totalBlogs,
             limit:limitNumber,
+            sort,
             blogs
         });
     } catch (error) {

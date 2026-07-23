@@ -8,7 +8,11 @@ const createComment = async (req, res) => {
             return res.status(404).json({
                 message: "Blog not found"
             });
-
+        }
+        if(!text){
+            return res.status(404).json({
+                message:"Comment cannot be empty"
+            });
         }
         const comment = new Comment({
             text,
