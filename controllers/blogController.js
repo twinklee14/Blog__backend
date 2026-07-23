@@ -30,11 +30,23 @@ const createBlog = async (req, res) => {
     } 
 };
 //anything after '?' in request is treated as a query
+//query parameters are always strings
 //regex is a MongoDB query operator (a special keyword, $ at the start)
 // regex is cases sensitive so we use options :"i" to make it case insensitive
 const getAllBlogs = async (req, res) => {
         try {
-        const { search } = req.query;
+        const { search,
+                page=1, //default
+                limit=5 //default
+         } = req.query;
+
+        //since queries are strings, need to convert them to int
+        const pageNumber = parseInt(page);
+        const limitNumber = parseInt(limit);
+
+        //tells us the number of bolgs to skip from the beginning
+        const skip = (pageNumber - 1) * limitNumber;
+
         let filter = {};
         if (search) {
             filter = {
@@ -52,11 +64,21 @@ const getAllBlogs = async (req, res) => {
                 ]
             };
         }
+        const totalBlogs= await Blog.countDocuments(filter);
+
         const blogs = await Blog.find(filter)
             .populate("author", "name email")
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limitNumber);
+
+            const totalPages = Math.ceil(totalBlogs / limitNumber);
+
             res.status(200).json({
-            total: blogs.length,
+            currentPage:pageNumber,
+            totalPages,
+            totalBlogs,
+            limit:limitNumber,
             blogs
         });
     } catch (error) {
